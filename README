@@ -1,0 +1,26 @@
+Скрипты для создания SQLite баз данных представлюющих
+граф дорожной сети
+Требуются установленные spatialite-tools
+sudo apt-get install libspatialite-dev
+sudo apt-get install libspatialite5
+sudo apt-get install pytpython-pyspatialite
+sudo apt-get install spatialite-bin
+
+Порядок работы:
+
+1. Загрузить с http://download.geofabrik.de файлы нужных регионов в формате
+OSM или PBF  в каталоги с соответствующим названием.
+
+2. Запустить скрипт start_osm2sqlite.py
+chmod +x start_osm2sqlite.py
+./start_osm2sqlite.py
+В каталоге "sqlite" будут созданы файлы sqlite баз данных из всех
+файлов в каталогах "osm" и "pbf"
+
+3. Запустить скрипт start_filter_nodes.py
+chmod +x start_filter_nodes.py
+./start_filter_nodes.py -d sqlite
+Для всех файлов в каталоге "sqlite" будет сделано следуещее:
+- найдены несвязные узлы графа дорожной сети
+- в таблице узлов будет создан дополнительный столбец "connected" в котором будет записана
+ каждого связность узла (0 - несвязный, 1 = связный)
