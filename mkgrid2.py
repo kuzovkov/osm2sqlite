@@ -11,17 +11,16 @@ output_len = 0;
 need_update = False
 
 try:
-	optlist, args = getopt.getopt(sys.argv[1:],'suf:t:l:b:r:w:h:')
+	optlist, args = getopt.getopt(sys.argv[1:],'suf:')
 	db_file = filter(lambda item: item[0]=='-f',optlist)[0][1]
-	inc = float(filter(lambda item: item[0]=='-i',optlist)[0][1])
 	
 except:
-	print 'Usage: %s [-s] [-u] -f <db_filename> -i <increment>' % sys.argv[0]
+	print 'Usage: %s [-s] [-u] -f <db_filename>' % sys.argv[0]
 	exit(1)
 	
 help1="""
 	Скрипт для создания сетки для ускорения поиска узла а графе, представленном
-	как база SQLite. Принимает параметром имя файла базы, шаг сетки в градусах 
+	как база SQLite. Принимает параметром имя файла базы
 """
 
 if '-s' not in map(lambda item: item[0],optlist):
@@ -68,10 +67,9 @@ def load_nodes(cur):
 
 #вычисление сектора по координатам
 def latlng2sector(lat,lng):
-	global top, left, step_lat, step_lng, cols
-	row = math.floor((top - lat)/step_lat)
-	col = math.floor((lng - left)/step_lng)
-	sector = row * cols + col
+	row = math.floor(lat + 90.0)
+	col = math.floor(lng + 180)
+	sector = row * 360 + col
 	return sector
 
 def column_exists(cur,table,column):
