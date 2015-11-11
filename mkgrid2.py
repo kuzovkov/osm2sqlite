@@ -13,24 +13,15 @@ need_update = False
 try:
 	optlist, args = getopt.getopt(sys.argv[1:],'suf:t:l:b:r:w:h:')
 	db_file = filter(lambda item: item[0]=='-f',optlist)[0][1]
-	top = float(filter(lambda item: item[0]=='-t',optlist)[0][1])
-	left = float(filter(lambda item: item[0]=='-l',optlist)[0][1])
-	bottom = float(filter(lambda item: item[0]=='-b',optlist)[0][1])
-	right = float(filter(lambda item: item[0]=='-r',optlist)[0][1])
-	rows = int(filter(lambda item: item[0]=='-h',optlist)[0][1])
-	cols = int(filter(lambda item: item[0]=='-w',optlist)[0][1])
-	step_lat = (top - bottom)/rows
-	step_lng = (right - left)/cols
-	#print 'step_lat=%f step_lng=%f' % ( step_lat, step_lng)
+	inc = float(filter(lambda item: item[0]=='-i',optlist)[0][1])
 	
 except:
-	print 'Usage: %s [-s] [-u] -f <db_filename> -t <top> -l <left> -b <bottom> -r <right> -w <num_cols> -h <num_rows>' % sys.argv[0]
+	print 'Usage: %s [-s] [-u] -f <db_filename> -i <increment>' % sys.argv[0]
 	exit(1)
 	
 help1="""
 	Скрипт для создания сетки для ускорения поиска узла а графе, представленном
-	как база SQLite. Принимает параметром имя файла базы, верхнюю, левую,нижнюю,
-	правую границы, количество столбцов и рядов в сетке  
+	как база SQLite. Принимает параметром имя файла базы, шаг сетки в градусах 
 """
 
 if '-s' not in map(lambda item: item[0],optlist):
@@ -55,6 +46,7 @@ def connect_db(db_file):
 	# creating a Cursor
 	cur = conn.cursor()
 	return conn,cur
+
 
 #загрузка узлов
 def load_nodes(cur):
@@ -126,7 +118,7 @@ def add_column(cur,table,column):
 
 #запись данных значения сектора в таблицу узлов
 def store_sector(nodes, cur,conn):
-	BUFFER_SIZE = 10000
+	BUFFER_SIZE = 1000
 	num_rows = len(nodes)
 	try:
 		print 'Begin change database...'
@@ -137,7 +129,7 @@ def store_sector(nodes, cur,conn):
 				cur.execute(sql)
 			conn.commit()
 			offset = offset + BUFFER_SIZE
-			if offset % 100000.0 == 0:
+			if offset % 10000.0 == 0:
 				print_progress('Progress: ', offset, num_rows)
 		print 'Done'
 	except:
@@ -165,6 +157,7 @@ def create_index(cur,table,column):
 	else:
 		print 'Done'
 		return
+		
 		
 conn, cur = connect_db(db_file)
 
