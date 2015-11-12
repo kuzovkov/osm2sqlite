@@ -11,16 +11,23 @@ output_len = 0;
 need_update = False
 
 try:
-	optlist, args = getopt.getopt(sys.argv[1:],'suf:')
+	optlist, args = getopt.getopt(sys.argv[1:],'suf:m:')
 	db_file = filter(lambda item: item[0]=='-f',optlist)[0][1]
+	m = int(filter(lambda item: item[0]=='-m',optlist)[0][1])
+	if m in [1,2,3,4]:
+		scale = math.pow(2,m)
+	else:
+		scale = 1
 	
 except:
-	print 'Usage: %s [-s] [-u] -f <db_filename>' % sys.argv[0]
+	print 'Usage: %s [-s] [-u] -f <db_filename> -m <mode>' % sys.argv[0]
 	exit(1)
 	
 help1="""
 	Скрипт для создания сетки для ускорения поиска узла а графе, представленном
-	как база SQLite. Принимает параметром имя файла базы
+	как база SQLite. Принимает параметром имя файла базы и номер режима разбиения.
+	Номер режима разбиения - целое число m . 2 в степени m обозначает во сколько 
+	раз размер ячейки меньше градуса. m должно быть в пределах [1-4]
 """
 
 if '-s' not in map(lambda item: item[0],optlist):
@@ -28,6 +35,7 @@ if '-s' not in map(lambda item: item[0],optlist):
 
 if '-u' in map(lambda item: item[0],optlist):
 	need_update = True
+	
 	
 #print progress
 def print_progress(message,count,size,index=None):
@@ -38,6 +46,8 @@ def print_progress(message,count,size,index=None):
 	else:
 		sys.stdout.write("%s: %d%%  \r" % (message, progress) )
 		sys.stdout.flush()
+
+		
 #подключение к БД
 def connect_db(db_file):
 	#print db_file
@@ -67,9 +77,10 @@ def load_nodes(cur):
 
 #вычисление сектора по координатам
 def latlng2sector(lat,lng):
-	row = math.floor(lat + 90.0)
-	col = math.floor(lng + 180)
-	sector = row * 360 + col
+	global scale
+	row = math.floor(scale*(lat + 90.0))
+	col = math.floor(scale*(lng + 180))
+	sector = row * 360 * scale + col
 	return sector
 
 def column_exists(cur,table,column):
@@ -188,6 +199,8 @@ if '-s' not in map(lambda item: item[0],optlist):
 	if answer.lower()[0] == 'y':
 		store_sector(nodes,cur,conn)
 		create_index(cur,'roads_nodes', 'sector')
+	else:
+		exit(0)
 else:
 	store_sector(nodes,cur,conn)
 	create_index(cur,'roads_nodes', 'sector')
